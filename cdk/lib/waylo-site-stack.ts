@@ -8,6 +8,7 @@ import * as route53 from 'aws-cdk-lib/aws-route53';
 import * as route53targets from 'aws-cdk-lib/aws-route53-targets';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import { ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
+import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
 
 export class WayloSiteStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -128,6 +129,13 @@ export class WayloSiteStack extends Stack {
         new route53targets.CloudFrontTarget(cloudfrontDistribution)
       ),
       zone,
+    });
+
+    new BucketDeployment(this, 'DeviceLabUiBucketDeployment', {
+      sources: [Source.asset(`../waylo-site/build`)],
+      destinationBucket: assetsBucket,
+      distribution: cloudfrontDistribution,
+      distributionPaths: ['/*'],
     });
   }
 }
