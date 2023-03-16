@@ -1,0 +1,12 @@
+{
+  "short_name": "Waylo Records",
+  "name": "Waylo Records",
+  "icons": [
+    {
+      "src": "WayloLogo.png",
+      "type": "image/png"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone"
+}
