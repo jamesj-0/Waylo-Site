@@ -1,0 +1,45 @@
+{
+  "hosted-zone:account=380694953393:domainName=development.cet.gvea.sky:region=eu-west-1": {
+    "Id": "/hostedzone/Z08851952NI7C3OD74Y5T",
+    "Name": "development.cet.gvea.sky."
+  },
+  "hosted-zone:account=713124159241:domainName=staging.cet.gvea.sky:region=eu-west-1": {
+    "Id": "/hostedzone/Z0581515WIL3RC5ANO9H",
+    "Name": "staging.cet.gvea.sky."
+  },
+  "vpc-provider:account=326609059985:filter.vpc-id=vpc-082c45022211d5222:region=eu-west-1:returnAsymmetricSubnets=true": {
+    "vpcId": "vpc-082c45022211d5222",
+    "vpcCidrBlock": "10.206.99.0/24",
+    "availabilityZones": [],
+    "subnetGroups": [
+      {
+        "name": "Public-CI-TOP-Peer",
+        "type": "Public",
+        "subnets": [
+          {
+            "subnetId": "subnet-0ce0225a9544a1448",
+            "cidr": "10.206.99.32/27",
+            "availabilityZone": "eu-west-1a",
+            "routeTableId": "rtb-0bb4b16984f442e10"
+          }
+        ]
+      },
+      {
+        "name": "Private-CI-TOP-Peer",
+        "type": "Private",
+        "subnets": [
+          {
+            "subnetId": "subnet-0c67e06fb7daf7d6d",
+            "cidr": "10.206.99.0/27",
+            "availabilityZone": "eu-west-1a",
+            "routeTableId": "rtb-0b8ebbbc5d3b04152"
+          }
+        ]
+      }
+    ]
+  },
+  "hosted-zone:account=480490460504:domainName=production.cet.gvea.sky:region=eu-west-1": {
+    "Id": "/hostedzone/Z0581121IDF6W14QKFUO",
+    "Name": "production.cet.gvea.sky."
+  }
+}
