@@ -7,8 +7,10 @@ import {
 } from 'aws-cdk-lib/pipelines';
 import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { PipelineStage } from './pipeline-stage';
+import { S3DeployAction } from 'aws-cdk-lib/aws-codepipeline-actions';
 
 const REPO_NAME = 'jamesj-0/waylo-site';
+const BUCKET_NAME = 'your-s3-bucket-name';
 
 export class PipelineStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
