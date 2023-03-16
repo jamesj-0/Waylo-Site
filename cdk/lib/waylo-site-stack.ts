@@ -13,7 +13,7 @@ export class WayloSiteStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
-    const domainName = 'example.com';
+    const domainName = 'waylo-records.com';
 
     const assetsBucket = new s3.Bucket(this, 'WebsiteBucket', {
       publicReadAccess: false,
