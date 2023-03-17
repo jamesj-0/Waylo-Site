@@ -46,9 +46,6 @@ export default function App() {
         </Environment>
       </group>
       <Rig />
-      <EffectComposer>
-        <Noise opacity={0.2} />
-      </EffectComposer>
     </Canvas>
   );
 }
