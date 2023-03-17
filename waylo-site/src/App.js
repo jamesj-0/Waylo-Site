@@ -9,7 +9,6 @@ import {
   Lightformer,
   Center,
 } from '@react-three/drei';
-import { EffectComposer, Noise } from '@react-three/postprocessing';
 import { Model } from './Waylo';
 import { Points, PointMaterial } from '@react-three/drei';
 import * as random from 'maath/random/dist/maath-random.esm';
