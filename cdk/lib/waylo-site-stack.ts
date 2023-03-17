@@ -26,7 +26,7 @@ export class WayloSiteStack extends Stack {
       bucketName: siteDomain,
       publicReadAccess: false,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-      removalPolicy: RemovalPolicy.RETAIN,
+      removalPolicy: RemovalPolicy.DESTROY,
       accessControl: s3.BucketAccessControl.PRIVATE,
       objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_ENFORCED,
       encryption: s3.BucketEncryption.S3_MANAGED,
