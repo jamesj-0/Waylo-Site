@@ -1,44 +1,64 @@
 import { Construct } from 'constructs';
 import { CfnOutput, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
-import * as acm from 'aws-cdk-lib/aws-certificatemanager';
-import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
-import * as cloudfront_origins from 'aws-cdk-lib/aws-cloudfront-origins';
-import * as iam from 'aws-cdk-lib/aws-iam';
-import * as route53 from 'aws-cdk-lib/aws-route53';
-import * as targets from 'aws-cdk-lib/aws-route53-targets';
-import * as s3 from 'aws-cdk-lib/aws-s3';
 import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
+import { DnsValidatedCertificate } from 'aws-cdk-lib/aws-certificatemanager';
+import { ARecord, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
+import {
+  Bucket,
+  BlockPublicAccess,
+  BucketAccessControl,
+  ObjectOwnership,
+  BucketEncryption,
+} from 'aws-cdk-lib/aws-s3';
+import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
+import { PolicyStatement, CanonicalUserPrincipal } from 'aws-cdk-lib/aws-iam';
+import {
+  Distribution,
+  SecurityPolicyProtocol,
+  AllowedMethods,
+  ViewerProtocolPolicy,
+  OriginAccessIdentity,
+} from 'aws-cdk-lib/aws-cloudfront';
+import { S3Origin } from 'aws-cdk-lib/aws-cloudfront-origins';
 
 export class WayloSiteStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
     const siteDomain = 'waylo-records.com';
-    const cloudfrontOAI = new cloudfront.OriginAccessIdentity(
-      this,
-      'cloudfront-OAI',
-      {
-        comment: `OAI for waylo-records`,
-      }
-    );
+    const zone = HostedZone.fromLookup(this, 'HostedZone', {
+      domainName: siteDomain,
+    });
+    const cloudfrontOAI = new OriginAccessIdentity(this, 'cloudfront-OAI', {
+      comment: `OAI for waylo-records`,
+    });
 
-    const siteBucket = new s3.Bucket(this, 'WebsiteBucket', {
+    // TLS certificate
+    const certificate = new DnsValidatedCertificate(this, 'SiteCertificate', {
+      domainName: siteDomain,
+      hostedZone: zone,
+      region: 'us-east-1', // Cloudfront only checks this region for certificates.
+      cleanupRoute53Records: true,
+    });
+    new CfnOutput(this, 'Certificate', { value: certificate.certificateArn });
+
+    const siteBucket = new Bucket(this, 'WebsiteBucket', {
       bucketName: siteDomain,
       publicReadAccess: false,
-      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
       removalPolicy: RemovalPolicy.DESTROY,
-      accessControl: s3.BucketAccessControl.PRIVATE,
-      objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_ENFORCED,
-      encryption: s3.BucketEncryption.S3_MANAGED,
+      accessControl: BucketAccessControl.PRIVATE,
+      objectOwnership: ObjectOwnership.BUCKET_OWNER_ENFORCED,
+      encryption: BucketEncryption.S3_MANAGED,
     });
 
     // Grant access to cloudfront
     siteBucket.addToResourcePolicy(
-      new iam.PolicyStatement({
+      new PolicyStatement({
         actions: ['s3:GetObject'],
         resources: [siteBucket.arnForObjects('*')],
         principals: [
-          new iam.CanonicalUserPrincipal(
+          new CanonicalUserPrincipal(
             cloudfrontOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId
           ),
         ],
@@ -47,43 +67,18 @@ export class WayloSiteStack extends Stack {
 
     new CfnOutput(this, 'Bucket', { value: siteBucket.bucketName });
 
-    // Perform a look up for the hosted zone for the site domain
-    const zone = route53.HostedZone.fromLookup(this, 'HostedZone', {
-      domainName: siteDomain,
-    });
-
-    // TLS certificate
-    const certificate = new acm.DnsValidatedCertificate(
-      this,
-      'SiteCertificate',
-      {
-        domainName: siteDomain,
-        hostedZone: zone,
-        region: 'us-east-1', // Cloudfront only checks this region for certificates.
-      }
-    );
-    new CfnOutput(this, 'Certificate', { value: certificate.certificateArn });
-
-    // Add a cloudfront Function to a Distribution
-    const rewriteFunction = new cloudfront.Function(this, 'Function', {
-      code: cloudfront.FunctionCode.fromFile({
-        filePath: 'functions/url-rewrite.js',
-      }),
-    });
-
     // CloudFront distribution
-    const distribution = new cloudfront.Distribution(this, 'SiteDistribution', {
+    const distribution = new Distribution(this, 'SiteDistribution', {
       certificate: certificate,
-      defaultRootObject: 'index.html',
       domainNames: [siteDomain],
-      minimumProtocolVersion: cloudfront.SecurityPolicyProtocol.TLS_V1_2_2021,
+      minimumProtocolVersion: SecurityPolicyProtocol.TLS_V1_2_2021,
       defaultBehavior: {
-        origin: new cloudfront_origins.S3Origin(siteBucket, {
+        origin: new S3Origin(siteBucket, {
           originAccessIdentity: cloudfrontOAI,
         }),
         compress: true,
-        allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
-        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        allowedMethods: AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
+        viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       },
     });
 
@@ -92,11 +87,9 @@ export class WayloSiteStack extends Stack {
     });
 
     // Route53 alias record for the CloudFront distribution
-    new route53.ARecord(this, 'SiteAliasRecord', {
+    new ARecord(this, 'SiteAliasRecord', {
       recordName: siteDomain,
-      target: route53.RecordTarget.fromAlias(
-        new targets.CloudFrontTarget(distribution)
-      ),
+      target: RecordTarget.fromAlias(new CloudFrontTarget(distribution)),
       zone,
     });
 
