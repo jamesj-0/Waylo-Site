@@ -1,22 +1,29 @@
 import { Construct } from 'constructs';
-import { Duration, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
+import { CfnOutput, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
-import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
+import * as cloudfront_origins from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as route53 from 'aws-cdk-lib/aws-route53';
-import * as route53targets from 'aws-cdk-lib/aws-route53-targets';
+import * as targets from 'aws-cdk-lib/aws-route53-targets';
 import * as s3 from 'aws-cdk-lib/aws-s3';
-import { ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
 import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
 
 export class WayloSiteStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
-    const domainName = 'waylo-records.com';
+    const siteDomain = 'waylo-records.com';
+    const cloudfrontOAI = new cloudfront.OriginAccessIdentity(
+      this,
+      'cloudfront-OAI',
+      {
+        comment: `OAI for waylo-records`,
+      }
+    );
 
-    const assetsBucket = new s3.Bucket(this, 'WebsiteBucket', {
+    const siteBucket = new s3.Bucket(this, 'WebsiteBucket', {
+      bucketName: siteDomain,
       publicReadAccess: false,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
       removalPolicy: RemovalPolicy.RETAIN,
@@ -25,36 +32,37 @@ export class WayloSiteStack extends Stack {
       encryption: s3.BucketEncryption.S3_MANAGED,
     });
 
-    const cloudfrontOriginAccessIdentity = new cloudfront.OriginAccessIdentity(
-      this,
-      'CloudFrontOriginAccessIdentity'
-    );
-
-    assetsBucket.addToResourcePolicy(
+    // Grant access to cloudfront
+    siteBucket.addToResourcePolicy(
       new iam.PolicyStatement({
         actions: ['s3:GetObject'],
-        resources: [assetsBucket.arnForObjects('*')],
+        resources: [siteBucket.arnForObjects('*')],
         principals: [
           new iam.CanonicalUserPrincipal(
-            cloudfrontOriginAccessIdentity.cloudFrontOriginAccessIdentityS3CanonicalUserId
+            cloudfrontOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId
           ),
         ],
       })
     );
 
+    new CfnOutput(this, 'Bucket', { value: siteBucket.bucketName });
+
+    // Perform a look up for the hosted zone for the site domain
     const zone = route53.HostedZone.fromLookup(this, 'HostedZone', {
-      domainName: domainName,
+      domainName: siteDomain,
     });
 
+    // TLS certificate
     const certificate = new acm.DnsValidatedCertificate(
       this,
       'SiteCertificate',
       {
-        domainName: domainName,
+        domainName: siteDomain,
         hostedZone: zone,
         region: 'us-east-1', // Cloudfront only checks this region for certificates.
       }
     );
+    new CfnOutput(this, 'Certificate', { value: certificate.certificateArn });
 
     // Add a cloudfront Function to a Distribution
     const rewriteFunction = new cloudfront.Function(this, 'Function', {
@@ -63,78 +71,39 @@ export class WayloSiteStack extends Stack {
       }),
     });
 
-    const responseHeaderPolicy = new cloudfront.ResponseHeadersPolicy(
-      this,
-      'SecurityHeadersResponseHeaderPolicy',
-      {
-        comment: 'Security headers response header policy',
-        securityHeadersBehavior: {
-          contentSecurityPolicy: {
-            override: true,
-            contentSecurityPolicy: "default-src 'self'",
-          },
-          strictTransportSecurity: {
-            override: true,
-            accessControlMaxAge: Duration.days(2 * 365),
-            includeSubdomains: true,
-            preload: true,
-          },
-          contentTypeOptions: {
-            override: true,
-          },
-          referrerPolicy: {
-            override: true,
-            referrerPolicy:
-              cloudfront.HeadersReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN,
-          },
-          xssProtection: {
-            override: true,
-            protection: true,
-            modeBlock: true,
-          },
-          frameOptions: {
-            override: true,
-            frameOption: cloudfront.HeadersFrameOption.DENY,
-          },
-        },
-      }
-    );
+    // CloudFront distribution
+    const distribution = new cloudfront.Distribution(this, 'SiteDistribution', {
+      certificate: certificate,
+      defaultRootObject: 'index.html',
+      domainNames: [siteDomain],
+      minimumProtocolVersion: cloudfront.SecurityPolicyProtocol.TLS_V1_2_2021,
+      defaultBehavior: {
+        origin: new cloudfront_origins.S3Origin(siteBucket, {
+          originAccessIdentity: cloudfrontOAI,
+        }),
+        compress: true,
+        allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
+        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      },
+    });
 
-    const cloudfrontDistribution = new cloudfront.Distribution(
-      this,
-      'CloudFrontDistribution',
-      {
-        certificate: certificate,
-        domainNames: [domainName],
-        defaultRootObject: 'index.html',
-        defaultBehavior: {
-          origin: new origins.S3Origin(assetsBucket, {
-            originAccessIdentity: cloudfrontOriginAccessIdentity,
-          }),
-          functionAssociations: [
-            {
-              function: rewriteFunction,
-              eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
-            },
-          ],
-          viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-          responseHeadersPolicy: responseHeaderPolicy,
-        },
-      }
-    );
+    new CfnOutput(this, 'DistributionId', {
+      value: distribution.distributionId,
+    });
 
-    new route53.ARecord(this, 'ARecord', {
-      recordName: domainName,
+    // Route53 alias record for the CloudFront distribution
+    new route53.ARecord(this, 'SiteAliasRecord', {
+      recordName: siteDomain,
       target: route53.RecordTarget.fromAlias(
-        new route53targets.CloudFrontTarget(cloudfrontDistribution)
+        new targets.CloudFrontTarget(distribution)
       ),
       zone,
     });
 
     new BucketDeployment(this, 'DeviceLabUiBucketDeployment', {
       sources: [Source.asset(`../waylo-site/build`)],
-      destinationBucket: assetsBucket,
-      distribution: cloudfrontDistribution,
+      destinationBucket: siteBucket,
+      distribution,
       distributionPaths: ['/*'],
     });
   }
