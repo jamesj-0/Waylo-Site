@@ -13,35 +13,49 @@ function Overlay() {
         pointerEvents: 'none',
         width: '100%',
         height: '100%',
+        overflow: 'hidden',
       }}
     >
+      <p
+        style={{
+          animation: 'scroll-left 15s linear infinite',
+          fontSize: '13px',
+        }}
+      >
+        WAY001 - Holloway - Out 01.01.01
+      </p>
       <a
         href="https://pmnd.rs/"
-        style={{ position: 'absolute', bottom: 40, left: 90, fontSize: '13px' }}
+        style={{
+          position: 'absolute',
+          bottom: 40,
+          left: 90,
+          fontSize: '13px',
+        }}
       >
         WAY001
         <br />
         Holloway
       </a>
       <div
-        style={{ position: 'absolute', top: 40, left: 40, fontSize: '13px' }}
+        style={{ position: 'absolute', top: 50, left: 40, fontSize: '13px' }}
       >
-        bandcamp —
+        Bandcamp —
       </div>
       <div
-        style={{ position: 'absolute', top: 60, left: 40, fontSize: '13px' }}
+        style={{ position: 'absolute', top: 75, left: 40, fontSize: '13px' }}
       >
-        spotify —
+        Spotify —
       </div>
       <div
-        style={{
-          position: 'absolute',
-          bottom: 40,
-          right: 40,
-          fontSize: '13px',
-        }}
+        style={{ position: 'absolute', top: 100, left: 40, fontSize: '13px' }}
       >
-        02/03/2023
+        Instagram —
+      </div>
+      <div
+        style={{ position: 'absolute', top: 125, left: 40, fontSize: '13px' }}
+      >
+        RA —
       </div>
     </div>
   );

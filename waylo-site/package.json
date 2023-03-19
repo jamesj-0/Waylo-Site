@@ -9,6 +9,11 @@
   ],
   "main": "src/index.js",
   "dependencies": {
+    "@emotion/react": "^11.10.6",
+    "@emotion/styled": "^11.10.6",
+    "@mui/icons-material": "^5.11.11",
+    "@mui/material": "^5.11.13",
+    "@mui/styled-engine": "^5.11.11",
     "@pmndrs/branding": "0.0.8",
     "@react-three/drei": "9.46.2",
     "@react-three/fiber": "8.9.1",

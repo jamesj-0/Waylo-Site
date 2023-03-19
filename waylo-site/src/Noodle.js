@@ -46,11 +46,10 @@ export function Noodle() {
   const [geometry] = useState(() => nodes.Path.geometry);
   return (
     <mesh
-      position={[3, 3, -3]}
+      position={[10, 3, 8]}
       castShadow
       receiveShadow
-      rotation={[-Math.PI / 2, 0, 0]}
-      scale={0.01}
+      scale={0.03}
       geometry={geometry}
       material={material}
     />
