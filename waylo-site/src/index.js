@@ -21,15 +21,14 @@ function Overlay() {
         <p
           className="item"
           style={{
-            animation: 'scroll-left 15s linear infinite',
             fontSize: '16px',
-            whiteSpace: 'nowrap',
-            width: '100%',
+            width: '150vw',
+            color: '#1F232D',
           }}
         >
           <span
             style={{
-              fontSize: '18px',
+              fontSize: '15px',
               fontFamily: 'Eurostile-Wide',
             }}
           >
@@ -37,7 +36,7 @@ function Overlay() {
           </span>
           <span
             style={{
-              fontSize: '18px',
+              fontSize: '15px',
               fontFamily: 'Times',
               fontStyle: 'italic',
             }}
@@ -46,7 +45,7 @@ function Overlay() {
           </span>
           {'  '}
           {'  '}
-          <span style={{ fontSize: '16px', fontFamily: 'SFPro' }}>
+          <span style={{ fontSize: '14px', fontFamily: 'Eurostile-Wide' }}>
             Event - 7th July - The Carpet Shop Peckham - Parris - Mosca - Nadí -
             Holloway
           </span>
@@ -64,17 +63,27 @@ function Overlay() {
           style={{
             fontSize: '16px',
             fontFamily: 'Eurostile-Wide',
+            color: '#1F232D',
           }}
         >
           WAY
         </span>
         <span
-          style={{ fontSize: '16px', fontFamily: 'Times', fontStyle: 'italic' }}
+          style={{
+            fontSize: '16px',
+            fontFamily: 'Times',
+            fontStyle: 'italic',
+            color: '#1F232D',
+          }}
         >
           001
         </span>
         <br />
-        <span style={{ fontSize: '16px', fontFamily: 'SFPro' }}>Holloway</span>
+        <span
+          style={{ fontSize: '16px', fontFamily: 'SFPro', color: '#1F232D' }}
+        >
+          Holloway
+        </span>
       </p>
       <a
         style={{
@@ -82,6 +91,8 @@ function Overlay() {
           fontFamily: 'Eurostile-Wide',
           top: 100,
           left: 40,
+          color: '#1F232D',
+
           fontSize: '16px',
         }}
         href="https://waylo-records.bandcamp.com/releases"
@@ -95,6 +106,8 @@ function Overlay() {
           fontFamily: 'Eurostile-Wide',
           top: 125,
           left: 40,
+          color: '#1F232D',
+
           fontSize: '16px',
         }}
         href="https://www.instagram.com/waylo_records/"
@@ -108,6 +121,8 @@ function Overlay() {
           fontFamily: 'Eurostile-Wide',
           top: 150,
           left: 40,
+          color: '#1F232D',
+
           fontSize: '16px',
         }}
         href="https://ra.co/events/1692787"
