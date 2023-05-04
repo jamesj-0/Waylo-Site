@@ -4,6 +4,23 @@
     box-sizing: border-box;
 }
 
+@font-face {
+    font-family: 'Eurostile-Wide';
+    src: url('../public/fonts/EurostileNextPro-Wide.otf') format('opentype');
+}
+@font-face {
+    font-family: 'Eurostile-Wide-Bold';
+    src: url('../public/fonts/EurostileNextPro-WideSmBd.otf') format('opentype');
+}
+@font-face {
+    font-family: 'SFPro';
+    src: url('../public/fonts/SFProText-Medium.otf') format('opentype');
+}
+@font-face {
+    font-family: 'Times';
+    src: url('../public/fonts/Times.otf') format('opentype');
+}
+
 html,
 body,
 #root {
@@ -42,14 +59,6 @@ svg {
     }
 }
 
-@keyframes scroll-left{
-    from {
-        transform:translateX(100%)
-    }
-    to {
-        transform:translateX(-30%)
-    }
-}
 
 canvas {
     opacity: 0;
