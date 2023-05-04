@@ -24,6 +24,7 @@ function Overlay() {
             fontSize: '16px',
             width: '150vw',
             color: '#1F232D',
+            whiteSpace: 'nowrap',
           }}
         >
           <span
