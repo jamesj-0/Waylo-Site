@@ -21,8 +21,8 @@ function Overlay() {
         <p
           className="item"
           style={{
-            fontSize: '16px',
-            width: '150vw',
+            fontSize: '15px',
+            width: '200vw',
             color: '#1F232D',
             whiteSpace: 'nowrap',
           }}
